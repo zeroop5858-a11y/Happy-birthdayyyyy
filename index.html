@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Happy Birthday! 💖</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #ff758c;
+      --primary-dark: #ff477e;
+      --bg-gradient: linear-gradient(180deg, #ffeef2 0%, #ffd6e0 50%, #fec5bb 100%);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --shadow: 0 15px 35px rgba(255, 117, 140, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #2b2b36;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Mobile Container Frame */
+    .app-frame {
+      width: 100%;
+      max-width: 400px;
+      height: 100vh;
+      max-height: 840px;
+      background: var(--bg-gradient);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 480px) {
+      .app-frame {
+        border-radius: 36px;
+        height: 92vh;
+      }
+    }
+
+    /* =========================================
+       1. GIFT INTRO SCREEN
+       ========================================= */
+    #gift-screen {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-gradient);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    #gift-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.1);
+    }
+
+    .gift-box {
+      width: 170px;
+      height: 170px;
+      background: linear-gradient(135deg, #fff0f3, #ffd1dc);
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 15px 35px rgba(255, 107, 129, 0.35);
+      cursor: pointer;
+      animation: pulse 2.2s infinite ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Ribbon Styles */
+    .ribbon-v {
+      position: absolute;
+      width: 32px;
+      height: 100%;
+      background: linear-gradient(to right, #ff4d6d, #ff758c);
+      box-shadow: 0 0 8px rgba(255, 77, 109, 0.4);
+    }
+    .ribbon-h {
+      position: absolute;
+      height: 32px;
+      width: 100%;
+      background: linear-gradient(to bottom, #ff4d6d, #ff758c);
+      box-shadow: 0 0 8px rgba(255, 77, 109, 0.4);
+    }
+    .ribbon-bow {
+      position: absolute;
+      top: -16px;
+      font-size: 2.4rem;
+      z-index: 2;
+    }
+
+    .gift-meta {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .gift-to {
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #995d68;
+    }
+    .gift-name {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #4a282f;
+      margin-bottom: 0.2rem;
+    }
+    .gift-from {
+      font-size: 0.75rem;
+      color: #b07d86;
+      letter-spacing: 1px;
+    }
+    .tap-hint {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #ff477e;
+      font-weight: 600;
+      animation: fadeInOut 1.5s infinite;
+    }
+
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* =========================================
+       2. TOP NAV & CONTROLS
+       ========================================= */
+    .nav-bar {
+      position: absolute;
+      top: 1.2rem;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      z-index: 50;
+    }
+
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #4a282f;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .nav-btn:active { transform: scale(0.9); }
+
+    /* Side Dot Indicator */
+    .dots-indicator {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 40;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 117, 140, 0.3);
+      transition: all 0.3s ease;
+    }
+    .dot.active {
+      height: 18px;
+      border-radius: 10px;
+      background: var(--primary-dark);
+    }
+
+    /* =========================================
+       3. SLIDE DECK CONTAINER
+       ========================================= */
+    .slider-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 5.5rem 1.8rem 2.5rem 2.4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(40px) scale(0.96);
+      transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .content-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      padding: 1.8rem 1.4rem;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      position: relative;
+    }
+
+    .tag-bubble {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    /* --- Slide 1: Welcome Header --- */
+    .wish-sub {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #995d68;
+      font-weight: 600;
+    }
+    .wish-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: #ff3366;
+      margin: 0.4rem 0;
+      letter-spacing: 1px;
+    }
+    .wish-signature {
+      font-family: 'Caveat', cursive;
+      font-size: 2.4rem;
+      color: #d63384;
+      margin-top: 0.5rem;
+    }
+
+    /* --- Slide 2: Animated Cake & Candle --- */
+    .cake-container {
+      font-size: 4rem;
+      margin-bottom: 0.6rem;
+      position: relative;
+      display: inline-block;
+      animation: float 2.5s infinite ease-in-out;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .flame {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 14px;
+      background: #ffd166;
+      border-radius: 50% 50% 20% 20%;
+      box-shadow: 0 0 12px #ff9e00;
+      animation: flicker 0.6s infinite alternate ease-in-out;
+    }
+    @keyframes flicker {
+      0% { transform: translateX(-50%) scale(1) rotate(-2deg); }
+      100% { transform: translateX(-50%) scale(1.15) rotate(2deg); }
+    }
+
+    .heartfelt-text {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: #55333a;
+      font-weight: 400;
+    }
+
+    /* --- Slide 3, 4, 5: Story & Notes --- */
+    .card-heading {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #4a282f;
+      margin-bottom: 0.8rem;
+    }
+    .note-list {
+      list-style: none;
+      text-align: left;
+      font-size: 0.85rem;
+      color: #613e45;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .note-list li::before {
+      content: "🌸 ";
+    }
+
+    /* --- Slide 6: Moments Polaroid Carousel --- */
+    .polaroid {
+      background: #ffffff;
+      padding: 10px 10px 18px 10px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      transform: rotate(-1.5deg);
+      transition: transform 0.3s;
+      position: relative;
+    }
+    .polaroid img {
+      width: 100%;
+      height: 230px;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+    }
+    .polaroid-caption {
+      font-family: 'Caveat', cursive;
+      font-size: 1.35rem;
+      color: #442;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 32px;
+    }
+    .carousel-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+    .photo-btn {
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-counter {
+      font-size: 0.75rem;
+      color: #8c6b73;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-frame">
+    <!-- =========================================
+         1. TAP TO OPEN INTRO SCREEN
+         ========================================= -->
+    <div id="gift-screen">
+      <div class="gift-box" id="openGiftBtn" title="Click to open!">
+        <div class="ribbon-v"></div>
+        <div class="ribbon-h"></div>
+        <div class="ribbon-bow">🎀</div>
+      </div>
+      <div class="gift-meta">
+        <div class="gift-to">To</div>
+        <div class="gift-name">BEBE</div>
+        <div class="gift-from">From Kavish</div>
+        <div class="tap-hint">✨ Tap to open ✨</div>
+      </div>
+    </div>
+
+    <!-- =========================================
+         2. TOP NAVIGATION
+         ========================================= -->
+    <div class="nav-bar">
+      <button class="nav-btn" id="prevSlide" aria-label="Previous Slide">▲</button>
+      <button class="nav-btn" id="nextSlide" aria-label="Next Slide">▼</button>
+    </div>
+
+    <!-- Side Dots Indicator -->
+    <div class="dots-indicator" id="dotsContainer"></div>
+
+    <!-- =========================================
+         3. VERTICAL SLIDES
+         ========================================= -->
+    <div class="slider-viewport" id="sliderViewport">
+      
+      <!-- Slide 1: Welcome Cover -->
+      <section class="slide active">
+        <div class="content-card">
+          <p class="wish-sub">Happy Birthday</p>
+          <h1 class="wish-title">BEBE</h1>
+          <p style="font-size: 0.85rem; color: #7a545d; margin-top: 0.4rem;">With all my love,</p>
+          <div class="wish-signature">Kavish 💕</div>
+        </div>
+      </section>
+
+      <!-- Slide 2: Birthday Cake & Heartfelt Wish -->
+      <section class="slide">
+        <div class="content-card">
+          <div class="tag-bubble">🎂 Make A Wish</div>
+          <div class="cake-container">
+            <div class="flame"></div>
+            🎂
+          </div>
+          <p class="heartfelt-text">
+            Happy Birthday meri jaan! I love you so much and want to be with you forever. You are my whole world, I cannot live without you! 💖
+          </p>
+          <div class="wish-signature" style="font-size: 1.8rem; margin-top: 0.6rem;">— Kavish</div>
+        </div>
+      </section>
+
+      <!-- Slide 3: What I Love Most About You -->
+      <section class="slide">
+        <div class="content-card">
+          <div class="tag-bubble">💖 My Favorites</div>
+          <h2 class="card-heading">What I love most about you</h2>
+          <ul class="note-list">
+            <li>Your warm, radiant smile that lights up my entire day.</li>
+            <li>The kindness and pure empathy you show everyone.</li>
+            <li>The way your eyes sparkle when you laugh uncontrollably.</li>
+            <li>How safe and peaceful I feel whenever I am with you.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Slide 4: Our Story -->
+      <section class="slide">
+        <div class="content-card">
+          <div class="tag-bubble">📖 Chapter by Chapter</div>
+          <h2 class="card-heading">Our Story</h2>
+          <p style="font-size: 0.88rem; line-height: 1.6; color: #5a3a41; text-align: left;">
+            I met you on <strong>4 Aug 2024</strong>, and that was the best day of my life. Every moment spent together since then has been a beautiful dream come true. 🥂
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 5: Shared Dreams -->
+      <section class="slide">
+        <div class="content-card">
+          <div class="tag-bubble">✨ Together Forever</div>
+          <h2 class="card-heading">Shared Dreams</h2>
+          <p style="font-size: 0.88rem; line-height: 1.6; color: #5a3a41;">
+            I want to travel the world with you, watch countless sunsets together, and design a warm, cozy life with you for the rest of my days. 🌍✈️
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 6: Moments Polaroid Slideshow -->
+      <section class="slide">
+        <div class="content-card" style="padding: 1.2rem 1rem;">
+          <div class="tag-bubble">📸 Moments</div>
+          
+          <div class="polaroid" id="polaroidCard">
+            <img id="polaroidImg" src="Photo1.jpg" alt="Special memory" />
+            <div class="polaroid-caption" id="polaroidCaption">You are sooooo cuteeeeee 🥰</div>
+          </div>
+
+          <div class="carousel-controls">
+            <button class="photo-btn" id="prevPhoto">◀</button>
+            <span class="photo-counter" id="photoIndex">1 / 4</span>
+            <button class="photo-btn" id="nextPhoto">▶</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    // =========================================
+    // PHOTO CAROUSEL DATA (Swap with your own images)
+    // =========================================
+    const photos = [
+      {
+        url: "Photo1.jpg",
+        caption: "You are sooooo cuteeeeee 🥰"
+      },
+      {
+        url: "Photo2.jpg",
+        caption: "You are sooo gorgeous ✨"
+      },
+      {
+        url: "Photo3.jpg",
+        caption: "I need you forever ❤️"
+      },
+      {
+        url: "Photo4.jpg",
+        caption: "I love you sooooo much 💖"
+      }
+    ];
+
+    let currentPhotoIdx = 0;
+    const polaroidImg = document.getElementById('polaroidImg');
+    const polaroidCaption = document.getElementById('polaroidCaption');
+    const photoIndex = document.getElementById('photoIndex');
+
+    function updatePhoto(index) {
+      currentPhotoIdx = (index + photos.length) % photos.length;
+      polaroidImg.src = photos[currentPhotoIdx].url;
+      polaroidCaption.textContent = photos[currentPhotoIdx].caption;
+      photoIndex.textContent = `${currentPhotoIdx + 1} / ${photos.length}`;
+      
+      // Gentle wobble animation
+      const polaroid = document.getElementById('polaroidCard');
+      polaroid.style.transform = `rotate(${Math.random() * 4 - 2}deg) scale(0.98)`;
+      setTimeout(() => {
+        polaroid.style.transform = `rotate(${Math.random() * 4 - 2}deg) scale(1)`;
+      }, 150);
+    }
+
+    document.getElementById('prevPhoto').addEventListener('click', (e) => {
+      e.stopPropagation();
+      updatePhoto(currentPhotoIdx - 1);
+    });
+
+    document.getElementById('nextPhoto').addEventListener('click', (e) => {
+      e.stopPropagation();
+      updatePhoto(currentPhotoIdx + 1);
+      triggerMiniConfetti();
+    });
+
+    // =========================================
+    // SLIDE NAVIGATION SYSTEM
+    // =========================================
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.getElementById('dotsContainer');
+    let currentSlide = 0;
+
+    // Create indicator dots
+    slides.forEach((_, idx) => {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      if (idx === 0) dot.classList.add('active');
+      dotsContainer.appendChild(dot);
+    });
+    const dots = document.querySelectorAll('.dot');
+
+    function goToSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[currentSlide].classList.remove('active');
+      dots[currentSlide].classList.remove('active');
+
+      currentSlide = index;
+      slides[currentSlide].classList.add('active');
+      dots[currentSlide].classList.add('active');
+
+      if (currentSlide === 1 || currentSlide === slides.length - 1) {
+        triggerMiniConfetti();
+      }
+    }
+
+    document.getElementById('prevSlide').addEventListener('click', () => goToSlide(currentSlide - 1));
+    document.getElementById('nextSlide').addEventListener('click', () => goToSlide(currentSlide + 1));
+
+    // Touch Swipe Detection for Vertical Slides
+    let startY = 0;
+    const viewport = document.getElementById('sliderViewport');
+
+    viewport.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', (e) => {
+      const endY = e.changedTouches[0].clientY;
+      const diffY = startY - endY;
+      if (Math.abs(diffY) > 40) {
+        if (diffY > 0) goToSlide(currentSlide + 1); // Swiped up
+        else goToSlide(currentSlide - 1);           // Swiped down
+      }
+    }, { passive: true });
+
+    // =========================================
+    // CONFETTI EFFECTS
+    // =========================================
+    function triggerGrandConfetti() {
+      // Confetti burst from both sides
+      confetti({
+        particleCount: 60,
+        spread: 60,
+        origin: { x: 0.1, y: 0.6 },
+        colors: ['#ff477e', '#ff758c', '#ffd166', '#ffffff']
+      });
+      confetti({
+        particleCount: 60,
+        spread: 60,
+        origin: { x: 0.9, y: 0.6 },
+        colors: ['#ff477e', '#ff758c', '#ffd166', '#ffffff']
+      });
+    }
+
+    function triggerMiniConfetti() {
+      confetti({
+        particleCount: 25,
+        spread: 70,
+        origin: { y: 0.7 },
+        colors: ['#ff758c', '#ffd166', '#ffffff']
+      });
+    }
+
+    // =========================================
+    // OPEN GIFT ACTION
+    // =========================================
+    document.getElementById('openGiftBtn').addEventListener('click', () => {
+      const giftScreen = document.getElementById('gift-screen');
+      giftScreen.classList.add('hidden');
+      triggerGrandConfetti();
+      setTimeout(triggerGrandConfetti, 400);
+    });
+  </script>
+</body>
+</html>
